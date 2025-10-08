@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/MetricsProvider.php';
+namespace ServerMonitoring;
 
 final class WindowsMetricsProvider implements MetricsProvider
 {
@@ -34,7 +34,7 @@ final class WindowsMetricsProvider implements MetricsProvider
         $loadPercentage = 0.0;
         if (class_exists('COM') || extension_loaded('com_dotnet')) {
             try {
-                $wmi = new COM('Winmgts://');
+                $wmi = new \COM('Winmgts://');
                 $cpus = $wmi->ExecQuery('SELECT LoadPercentage FROM Win32_Processor');
                 $sum = 0;
                 $count = 0;
@@ -43,7 +43,7 @@ final class WindowsMetricsProvider implements MetricsProvider
                     $count++;
                 }
                 $loadPercentage = $count > 0 ? ($sum / $count) : 0.0;
-            } catch (Throwable $t) {
+            } catch (\Throwable $t) {
             }
         }
 

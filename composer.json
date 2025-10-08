@@ -1,0 +1,19 @@
+{
+  "name": "mostafijur007/server-monitoring",
+  "description": "Small PHP server monitoring endpoint (CPU, RAM, disk, network) returning JSON",
+  "type": "project",
+  "require": {
+    "php": ">=7.3"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^9.5"
+  },
+  "autoload": {
+    "psr-4": {
+      "ServerMonitoring\\": "src/"
+    }
+  },
+  "scripts": {
+    "test": "phpunit --colors=always"
+  }
+}

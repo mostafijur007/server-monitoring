@@ -7,18 +7,14 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET');
 header('Access-Control-Allow-Headers: Content-Type');
 
-require_once __DIR__ . '/src/MetricsProvider.php';
-require_once __DIR__ . '/src/MonitorService.php';
+require_once __DIR__ . '/vendor/autoload.php';
+
+use ServerMonitoring\MonitorService;
+use ServerMonitoring\UnixMetricsProvider;
+use ServerMonitoring\WindowsMetricsProvider;
 
 $isWindows = strncasecmp(PHP_OS, 'WIN', 3) === 0;
-if ($isWindows) {
-    require_once __DIR__ . '/src/WindowsMetricsProvider.php';
-    $provider = new WindowsMetricsProvider();
-} else {
-    require_once __DIR__ . '/src/UnixMetricsProvider.php';
-    $provider = new UnixMetricsProvider();
-}
-
+$provider = $isWindows ? new WindowsMetricsProvider() : new UnixMetricsProvider();
 $monitor = new MonitorService($provider);
 try {
     echo json_encode($monitor->collect(), JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);

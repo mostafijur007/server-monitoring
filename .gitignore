@@ -1,0 +1,43 @@
+### PHP / Composer ###
+#/vendor/ is where Composer installs dependencies
+vendor/
+
+# Composer's cache and platform config
+.composer/
+
+# Composer runtime files (optional - keep composer.lock committed)
+# composer.lock
+
+### Build / CI / Coverage ###
+/build/
+/coverage/
+/.phpunit.result.cache
+
+### Runtime / logs / temp ###
+.env
+.env.*
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+### IDEs / Editors ###
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+
+### OS files ###
+.DS_Store
+Thumbs.db
+
+### Node ###
+node_modules/
+
+### PHPUnit / Test artifacts ###
+/tests/_output/
+/tests/_snapshots/
+
+### Misc ###
+.cache/
+doc/

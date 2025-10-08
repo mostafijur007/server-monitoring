@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/MetricsProvider.php';
+namespace ServerMonitoring;
 
 final class UnixMetricsProvider implements MetricsProvider
 {

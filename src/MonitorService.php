@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/MetricsProvider.php';
+namespace ServerMonitoring;
 
 final class MonitorService
 {
@@ -21,25 +21,25 @@ final class MonitorService
 
         try {
             $data['cpu'] = $this->provider->cpu();
-        } catch (Throwable $t) {
+        } catch (\Throwable $t) {
             $data['cpu'] = ['error' => $t->getMessage()];
         }
 
         try {
             $data['ram'] = $this->provider->ram();
-        } catch (Throwable $t) {
+        } catch (\Throwable $t) {
             $data['ram'] = ['error' => $t->getMessage()];
         }
 
         try {
             $data['disk'] = $this->provider->disk();
-        } catch (Throwable $t) {
+        } catch (\Throwable $t) {
             $data['disk'] = ['error' => $t->getMessage()];
         }
 
         try {
             $data['network'] = $this->provider->network();
-        } catch (Throwable $t) {
+        } catch (\Throwable $t) {
             $data['network'] = ['error' => $t->getMessage()];
         }
 
