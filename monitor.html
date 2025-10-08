@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Professional System Monitor</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root {
+    --primary: #3498db;
+    --secondary: #2ecc71;
+    --danger: #e74c3c;
+    --warning: #f39c12;
+    --dark: #2c3e50;
+    --light: #ecf0f1;
+    --gray: #95a5a6;
+    --text: #34495e;
+    --card-bg: #ffffff;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background-color: #f5f7fa;
+    color: var(--text);
+    line-height: 1.6;
+}
+
+.dashboard {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.header {
+    background-color: var(--dark);
+    color: white;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.header h1 {
+    font-size: 1.8rem;
+    display: flex;
+    align-items: center;
+}
+
+.header h1 i {
+    margin-right: 10px;
+    color: var(--primary);
+}
+
+.header-info {
+    display: flex;
+    gap: 15px;
+}
+
+.info-box {
+    background-color: rgba(255,255,255,0.1);
+    padding: 8px 15px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+}
+
+.info-box i {
+    margin-right: 8px;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.card {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.card-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: rgba(52, 152, 219, 0.05);
+}
+
+.card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+}
+
+.card-title i {
+    margin-right: 10px;
+    color: var(--primary);
+}
+
+.card-body {
+    padding: 20px;
+}
+
+.stats-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.stat-item {
+    background-color: var(--light);
+    padding: 10px;
+    border-radius: 6px;
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--dark);
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: var(--gray);
+}
+
+.progress-container {
+    margin-top: 10px;
+}
+
+.progress-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+}
+
+.progress-label {
+    font-weight: 500;
+}
+
+.progress-value {
+    font-weight: 600;
+}
+
+.progress-bar {
+    height: 8px;
+    background-color: var(--light);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background-color: var(--primary);
+    transition: width 0.3s ease;
+}
+
+.progress-fill.warning {
+    background-color: var(--warning);
+}
+
+.progress-fill.danger {
+    background-color: var(--danger);
+}
+
+.status {
+    font-size: 0.8rem;
+    padding: 4px 8px;
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+.status.good {
+    background-color: rgba(46, 204, 113, 0.15);
+    color: var(--secondary);
+}
+
+.status.warning {
+    background-color: rgba(243, 156, 18, 0.15);
+    color: var(--warning);
+}
+
+.status.danger {
+    background-color: rgba(231, 76, 60, 0.15);
+    color: var(--danger);
+}
+
+.chart-container {
+    height: 200px;
+    margin-top: 15px;
+    position: relative;
+}
+
+.footer {
+    margin-top: 20px;
+    text-align: center;
+    color: var(--gray);
+    font-size: 0.9rem;
+}
+
+@media (max-width: 992px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats-container {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .header {
+        flex-direction: column;
+    }
+    
+    .header-info {
+        margin-top: 10px;
+    }
+}
+
+@media (max-width: 576px) {
+    .stats-container {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+</head>
+<body>
+<div class="dashboard">
+    <div class="header">
+        <h1><i class="fas fa-server"></i> Professional System Monitor</h1>
+        <div class="header-info">
+            <div class="info-box">
+                <i class="fas fa-microchip"></i>
+                <span id="os-info">System Monitor</span>
+            </div>
+            <div class="info-box">
+                <i class="fas fa-clock"></i>
+                <span id="current-time">--:--:--</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <!-- CPU Card -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">
+                    <i class="fas fa-microchip"></i> CPU Usage
+                </div>
+                <div class="status" id="cpu-status">Normal</div>
+            </div>
+            <div class="card-body">
+                <div class="stats-container">
+                    <div class="stat-item">
+                        <div class="stat-value" id="cpu-cores">-</div>
+                        <div class="stat-label">Cores</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="cpu-load">-</div>
+                        <div class="stat-label">Load Average</div>
+                    </div>
+                </div>
+                
+                <div class="progress-container">
+                    <div class="progress-info">
+                        <span class="progress-label">CPU Usage</span>
+                        <span class="progress-value" id="cpu-percentage">-</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="cpu-progress-bar"></div>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="cpuChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- RAM Card -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">
+                    <i class="fas fa-memory"></i> Memory Usage
+                </div>
+                <div class="status" id="ram-status">Normal</div>
+            </div>
+            <div class="card-body">
+                <div class="stats-container">
+                    <div class="stat-item">
+                        <div class="stat-value" id="ram-total">-</div>
+                        <div class="stat-label">Total Memory</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="ram-free">-</div>
+                        <div class="stat-label">Free Memory</div>
+                    </div>
+                </div>
+                
+                <div class="progress-container">
+                    <div class="progress-info">
+                        <span class="progress-label">Memory Usage</span>
+                        <span class="progress-value" id="ram-percentage">-</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="ram-progress-bar"></div>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="ramChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Disk Card -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">
+                    <i class="fas fa-hdd"></i> Disk Usage
+                </div>
+                <div class="status" id="disk-status">Normal</div>
+            </div>
+            <div class="card-body">
+                <div class="stats-container">
+                    <div class="stat-item">
+                        <div class="stat-value" id="disk-total">-</div>
+                        <div class="stat-label">Total Space</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="disk-free">-</div>
+                        <div class="stat-label">Free Space</div>
+                    </div>
+                </div>
+                
+                <div class="progress-container">
+                    <div class="progress-info">
+                        <span class="progress-label">Disk Usage</span>
+                        <span class="progress-value" id="disk-percentage">-</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="disk-progress-bar"></div>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="diskChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Network Card -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">
+                    <i class="fas fa-network-wired"></i> Network Traffic
+                </div>
+                <div>
+                    <button id="refresh-btn" class="status good" style="cursor:pointer">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="stats-container">
+                    <div class="stat-item">
+                        <div class="stat-value" id="network-rx">-</div>
+                        <div class="stat-label">Download</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="network-tx">-</div>
+                        <div class="stat-label">Upload</div>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="networkChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Professional System Monitor &copy; 2025 | Data refreshes every 3 seconds</p>
+    </div>
+</div>
+
+<script>
+// === Helper Functions ===
+function formatBytes(bytes, decimals = 2) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+}
+
+function updateProgressBar(elementId, percentage) {
+    const element = document.getElementById(elementId);
+    element.style.width = percentage + '%';
+    
+    // Set color based on percentage
+    if (percentage < 70) {
+        element.className = 'progress-fill';
+    } else if (percentage < 90) {
+        element.className = 'progress-fill warning';
+    } else {
+        element.className = 'progress-fill danger';
+    }
+}
+
+function updateStatus(elementId, percentage) {
+    const element = document.getElementById(elementId);
+    
+    if (percentage < 70) {
+        element.className = 'status good';
+        element.textContent = 'Normal';
+    } else if (percentage < 90) {
+        element.className = 'status warning';
+        element.textContent = 'Warning';
+    } else {
+        element.className = 'status danger';
+        element.textContent = 'Critical';
+    }
+}
+
+function updateClock() {
+    const now = new Date();
+    document.getElementById('current-time').textContent = now.toLocaleTimeString();
+}
+
+// === Chart Data ===
+const cpuData = { 
+    labels: [], 
+    datasets: [{ 
+        label: 'CPU Load', 
+        data: [], 
+        borderColor: '#3498db', 
+        backgroundColor: 'rgba(52, 152, 219, 0.2)',
+        fill: true,
+        tension: 0.4,
+        borderWidth: 2,
+        pointRadius: 0
+    }] 
+};
+
+const ramData = { 
+    labels: [], 
+    datasets: [{ 
+        label: 'RAM Usage (%)', 
+        data: [], 
+        borderColor: '#9b59b6', 
+        backgroundColor: 'rgba(155, 89, 182, 0.2)',
+        fill: true,
+        tension: 0.4,
+        borderWidth: 2,
+        pointRadius: 0
+    }] 
+};
+
+const diskData = { 
+    labels: [], 
+    datasets: [{ 
+        label: 'Disk Usage (%)', 
+        data: [], 
+        borderColor: '#2ecc71', 
+        backgroundColor: 'rgba(46, 204, 113, 0.2)',
+        fill: true,
+        tension: 0.4,
+        borderWidth: 2,
+        pointRadius: 0
+    }] 
+};
+
+const networkData = {
+    labels: [], 
+    datasets: [
+        { 
+            label: 'Download (MB/s)', 
+            data: [], 
+            borderColor: '#f39c12',
+            backgroundColor: 'rgba(243, 156, 18, 0.5)',
+            borderWidth: 1,
+            barPercentage: 0.6
+        },
+        { 
+            label: 'Upload (MB/s)', 
+            data: [], 
+            borderColor: '#e74c3c',
+            backgroundColor: 'rgba(231, 76, 60, 0.5)',
+            borderWidth: 1,
+            barPercentage: 0.6
+        }
+    ]
+};
+
+// === Chart Options ===
+const lineChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: { display: false }
+    },
+    scales: {
+        y: { 
+            beginAtZero: true,
+            grid: {
+                color: 'rgba(0, 0, 0, 0.05)'
+            }
+        },
+        x: { 
+            grid: {
+                display: false
+            }
+        }
+    },
+    animation: {
+        duration: 500
+    }
+};
+
+const networkChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: { 
+            display: true,
+            position: 'top',
+            labels: {
+                boxWidth: 12,
+                font: {
+                    size: 10
+                }
+            }
+        }
+    },
+    scales: {
+        y: { 
+            beginAtZero: true,
+            grid: {
+                color: 'rgba(0, 0, 0, 0.05)'
+            }
+        },
+        x: { 
+            grid: {
+                display: false
+            }
+        }
+    },
+    animation: {
+        duration: 500
+    }
+};
+
+// === Charts ===
+const cpuChart = new Chart(
+    document.getElementById('cpuChart'), 
+    { 
+        type: 'line', 
+        data: cpuData, 
+        options: {
+            ...lineChartOptions,
+            scales: {
+                ...lineChartOptions.scales,
+                y: { 
+                    ...lineChartOptions.scales.y,
+                    max: 100
+                }
+            }
+        }
+    }
+);
+
+const ramChart = new Chart(
+    document.getElementById('ramChart'), 
+    { 
+        type: 'line', 
+        data: ramData, 
+        options: {
+            ...lineChartOptions,
+            scales: {
+                ...lineChartOptions.scales,
+                y: { 
+                    ...lineChartOptions.scales.y,
+                    max: 100
+                }
+            }
+        }
+    }
+);
+
+const diskChart = new Chart(
+    document.getElementById('diskChart'), 
+    { 
+        type: 'line', 
+        data: diskData, 
+        options: {
+            ...lineChartOptions,
+            scales: {
+                ...lineChartOptions.scales,
+                y: { 
+                    ...lineChartOptions.scales.y,
+                    max: 100
+                }
+            }
+        }
+    }
+);
+
+const networkChart = new Chart(
+    document.getElementById('networkChart'), 
+    { 
+        type: 'bar', 
+        data: networkData, 
+        options: networkChartOptions
+    }
+);
+
+let lastNetwork = { rx_bytes: 0, tx_bytes: 0 };
+
+// === Fetch Data ===
+function fetchData() {
+    fetch('http://localhost/server-monitoring/monitor.php', {
+        mode: 'cors', // Explicitly request CORS mode
+        cache: 'no-cache' // Don't use cached responses
+    })
+    .then(res => {
+        if (!res.ok) {
+            throw new Error(`HTTP error! Status: ${res.status}`);
+        }
+        return res.json();
+    })
+    .then(data => {
+        console.log("Monitor data received:", data); // Debug log
+        const time = new Date().toLocaleTimeString();
+        
+        // Update OS info
+        if (data.os) {
+            document.getElementById('os-info').textContent = data.os;
+        }
+        
+        // === CPU ===
+        // Get CPU percentage - use the one calculated by the server if available
+        const cpuPercentage = data.cpu.percentage 
+            ? data.cpu.percentage 
+            : (data.cpu.load / data.cpu.cores * 100).toFixed(2);
+        
+        // Update CPU stats
+        document.getElementById('cpu-cores').textContent = data.cpu.cores;
+        document.getElementById('cpu-load').textContent = data.cpu.load.toFixed(2);
+        document.getElementById('cpu-percentage').textContent = `${cpuPercentage}%`;
+        
+        // Update CPU progress bar and status
+        updateProgressBar('cpu-progress-bar', cpuPercentage);
+        updateStatus('cpu-status', cpuPercentage);
+        
+        // Update CPU chart
+        cpuData.labels.push(time); 
+        cpuData.datasets[0].data.push(cpuPercentage);
+        if(cpuData.labels.length > 20) { 
+            cpuData.labels.shift(); 
+            cpuData.datasets[0].data.shift(); 
+        }
+        cpuChart.update();
+
+        // === RAM ===
+        // Update RAM stats
+        document.getElementById('ram-total').textContent = `${data.ram.total} MB`;
+        document.getElementById('ram-free').textContent = `${data.ram.free} MB`;
+        document.getElementById('ram-percentage').textContent = `${data.ram.percentage}%`;
+        
+        // Update RAM progress bar and status
+        updateProgressBar('ram-progress-bar', data.ram.percentage);
+        updateStatus('ram-status', data.ram.percentage);
+        
+        // Update RAM chart
+        ramData.labels.push(time); 
+        ramData.datasets[0].data.push(data.ram.percentage);
+        if(ramData.labels.length > 20) { 
+            ramData.labels.shift(); 
+            ramData.datasets[0].data.shift(); 
+        }
+        ramChart.update();
+
+        // === Disk ===
+        // Update Disk stats
+        document.getElementById('disk-total').textContent = `${data.disk.total} GB`;
+        document.getElementById('disk-free').textContent = `${data.disk.free} GB`;
+        document.getElementById('disk-percentage').textContent = `${data.disk.percentage}%`;
+        
+        // Update Disk progress bar and status
+        updateProgressBar('disk-progress-bar', data.disk.percentage);
+        updateStatus('disk-status', data.disk.percentage);
+        
+        // Update Disk chart
+        diskData.labels.push(time); 
+        diskData.datasets[0].data.push(data.disk.percentage);
+        if(diskData.labels.length > 20) { 
+            diskData.labels.shift(); 
+            diskData.datasets[0].data.shift(); 
+        }
+        diskChart.update();
+
+        // === Network ===
+        // Check if we have the new improved network metrics
+        if (data.network.rx_mbps !== undefined && data.network.tx_mbps !== undefined) {
+            // Use the pre-calculated Mbps values directly
+            const rxMbps = data.network.rx_mbps;
+            const txMbps = data.network.tx_mbps;
+            
+            // Update network display with formatted values
+            document.getElementById('network-rx').textContent = rxMbps.toFixed(2) + ' Mbps';
+            document.getElementById('network-tx').textContent = txMbps.toFixed(2) + ' Mbps';
+            
+            // Update network chart
+            networkData.labels = ['Current Rate'];
+            networkData.datasets[0].data = [rxMbps];
+            networkData.datasets[1].data = [txMbps];
+            
+            // Update chart labels to show Mbps
+            networkData.datasets[0].label = 'Download (Mbps)';
+            networkData.datasets[1].label = 'Upload (Mbps)';
+            
+            networkChart.update();
+        }
+        // Fall back to the old method if needed
+        else if (lastNetwork.rx_bytes > 0) {
+            // Calculate the difference since last update
+            let rxDiff = data.network.rx_bytes - lastNetwork.rx_bytes;
+            let txDiff = data.network.tx_bytes - lastNetwork.tx_bytes;
+            
+            // Make sure we don't have negative values due to counter resets
+            rxDiff = Math.max(0, rxDiff);
+            txDiff = Math.max(0, txDiff);
+            
+            // Convert to MB
+            let rxMB = rxDiff / 1024 / 1024;
+            let txMB = txDiff / 1024 / 1024;
+            
+            // Update network display with formatted values
+            document.getElementById('network-rx').textContent = formatBytes(rxDiff) + '/s';
+            document.getElementById('network-tx').textContent = formatBytes(txDiff) + '/s';
+            
+            // Update network chart
+            networkData.labels = ['Current Rate'];
+            networkData.datasets[0].data = [rxMB];
+            networkData.datasets[1].data = [txMB];
+            networkChart.update();
+        }
+        
+        // Store current network values for next comparison
+        lastNetwork = data.network;
+        
+        // Update clock
+        updateClock();
+    })
+    .catch(error => {
+        console.error("Failed to fetch monitoring data:", error);
+        
+        // Show error in the UI
+        const errorMessage = `
+            <div style="padding: 20px; background-color: rgba(231, 76, 60, 0.1); border-left: 5px solid #e74c3c; margin: 10px 0;">
+                <h3 style="color: #e74c3c; margin: 0 0 10px 0;">Connection Error</h3>
+                <p>${error.message}</p>
+                <p>Possible issues:</p>
+                <ul>
+                    <li>Your web server might not be running</li>
+                    <li>CORS headers might be missing on the server</li>
+                    <li>The monitor.php file might not be accessible</li>
+                </ul>
+                <p>Check the browser console for more details.</p>
+            </div>
+        `;
+        
+        // Find a visible element to show the error
+        document.querySelectorAll('.card-body').forEach(el => {
+            el.innerHTML = errorMessage;
+        });
+    });
+}
+
+// === Initialize ===
+// Update clock immediately
+updateClock();
+
+// Set up clock interval
+setInterval(updateClock, 1000);
+
+// Set up data refresh interval
+setInterval(fetchData, 3000);
+
+// Attach refresh button handler
+document.getElementById('refresh-btn').addEventListener('click', fetchData);
+
+// Initial data fetch
+fetchData();
+</script>
+</body>
+</html>
